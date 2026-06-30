@@ -99,15 +99,31 @@ fw4 reload && nft list table inet webrtc_control
 
 ## 已在真机验证（KWRT 25.12-SNAPSHOT + passwall + xray）
 
-- ✅ `@th,96,32` magic cookie 偏移命中真实 STUN 包（input 链确定性测试 + forward 链直连泄露测试，计数精确）
-- ✅ DPI 在直连/分流泄露路径（如国内直连）于 WAN 出口 `OUT=eth0` 丢弃 STUN，与端口无关
-- ✅ 国外 STUN 被 passwall 代理放行（不泄露），proxy 模式语义成立
-- ✅ DNS 解析器填充集合、cron 刷新、forward 规则、幂等 reload、ubus/UI 全部正常
+核心：
+- ✅ `@th,96,32` magic cookie 偏移命中真实 STUN 包，DPI 在直连泄露路径于 WAN 出口 `OUT=eth0` 丢弃，与端口无关
+- ✅ **真实 STUN 客户端端到端**：国内 STUN 服务器超时被拦；国外 STUN 经 passwall 返回的是**代理 IP 而非真实 IP**（真实公网 IP 不泄露）
+- ✅ 白名单端到端：白名单内来源的 STUN 放行，DPI 计数不增
+- ✅ IPv4 + IPv6 双覆盖：DPI 规则在 `inet` 表用 `meta l4proto udp @th`，与地址族无关；wan_ifaces 自动含 v6 WAN 设备
+
+健壮性 / 压测：
+- ✅ `fw4 reload` 与 `fw4 restart`（完整重启）后表都自动重建，与 passwall 规则共存不冲突
+- ✅ 5 路并发 reload 压测：flock 串行化后最终状态完全一致（无竞态）
+- ✅ block 模式、三层全关、50 条白名单、注入攻击（被校验拦下）等边界均正确
+- ✅ DNS 解析器填充集合、cron 刷新、幂等 reload、ubus/UI、限速日志全部正常
+
+## 能力边界（重要，请如实理解）
+
+本插件在**网络层**工作，能力与浏览器扩展不同：
+
+- ✅ **能防**：通过 STUN 探测**公网 IP** 的泄露 —— 直连路径丢弃，代理路径只暴露代理 IP。
+- ⚠️ **不能防 host candidate（本机局域网 IP）**：浏览器枚举本机网卡得到的 host 候选不产生网络流量，路由器拦不到。所幸现代浏览器（Chrome/Firefox 自 2019 起）默认用 **mDNS `.local`** 混淆本机 IP，已大幅缓解；老旧浏览器或关了 mDNS 才可能暴露内网 IP。要 100% 杜绝请同时用浏览器扩展。
+- ⚠️ **proxy 模式不"关闭"WebRTC**：经 passwall 代理的 WebRTC 仍可用（只是显示代理 IP）。即便 block 模式也拦不到被 TPROXY 接管的流量（它不经 forward 链）。本插件目标是**防真实 IP 泄露**，不是彻底禁用 WebRTC。
 
 ## 注意 / 取舍
 
-- 路由层拦 WebRTC 会**误伤正常视频通话/语音**（Zoom / Meet / 微信视频 / Discord / 游戏语音）。需要时把对应设备加入白名单。
+- 路由层拦 WebRTC 会**误伤走直连的正常视频通话/语音**（国内直连 STUN 的应用、游戏语音等）。需要时把对应设备加入白名单；微信等用私有协议、不触发标准 STUN 规则，一般不受影响。
 - proxy 模式依赖 passwall 用 TPROXY 接管 UDP；若你的代理方案对 UDP 用别的机制，请改用 block 模式或调整。
+- 双重 NAT（路由器下又接路由器）时，下游设备在本机看是同一来源 IP，"按设备白名单"无法区分。
 
 ## License
 
