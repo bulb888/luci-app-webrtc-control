@@ -20,4 +20,8 @@ reload_service() {
 
 service_triggers() {
 	procd_add_reload_trigger "webrtc-control"
+	# WAN 接口起来时重建规则：ifname 可能变化（PPPoE 重连、换 WAN 设备），
+	# 否则 wan_ifaces 集合里是旧设备名，proxy 模式会漏拦。
+	procd_add_interface_trigger "ifup" wan /etc/init.d/webrtc-control reload
+	procd_add_interface_trigger "ifup" wan6 /etc/init.d/webrtc-control reload
 }

@@ -221,6 +221,11 @@ apply_all() {
 	logmsg "applied (mode=$mode dpi=$dpi ports=$ports dns=$dns all_zones=$all_zones wan='$wanif')"
 }
 
+# 串行化：UI 保存、wan/wan6 双接口触发器可能近乎同时触发多次 reload，
+# 并发跑会让 nft 表进入不一致状态。用 flock 确保同一时刻只跑一个。
+exec 9>/tmp/webrtc-control.lock
+flock -x 9
+
 case "${1:-apply}" in
 	apply) apply_all ;;
 	clear) clear_all ;;

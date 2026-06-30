@@ -35,6 +35,7 @@ return view.extend({
 			})
 			.catch(function(e) {
 				ui.addNotification(null, E('p', _('操作失败: ') + e), 'error');
+				throw e;
 			});
 	},
 
@@ -67,7 +68,22 @@ return view.extend({
 			});
 		}, 5);
 
-		var enabled = (st.enabled == 1);
+		var self = this;
+		var enabledState = (st.enabled == 1);
+		var btnLabel = function() { return enabledState ? _('停用拦截') : _('启用拦截'); };
+		var btnClass = function() { return 'btn cbi-button cbi-button-' + (enabledState ? 'reset' : 'save'); };
+		var btnToggle = E('button', { 'class': btnClass() }, btnLabel());
+		btnToggle.addEventListener('click', function() {
+			btnToggle.disabled = true;
+			self.setEnabled(!enabledState).then(function() {
+				enabledState = !enabledState;
+				btnToggle.textContent = btnLabel();
+				btnToggle.className = btnClass();
+				btnToggle.disabled = false;
+			}).catch(function() {
+				btnToggle.disabled = false;
+			});
+		});
 
 		return E('div', { 'class': 'cbi-map' }, [
 			E('h2', {}, _('WebRTC 控制 · 总览')),
@@ -88,10 +104,7 @@ return view.extend({
 			E('div', { 'class': 'cbi-section' }, [
 				E('h3', {}, _('快捷操作')),
 				E('div', { 'class': 'cbi-section-node' }, [
-					E('button', {
-						'class': 'btn cbi-button cbi-button-' + (enabled ? 'reset' : 'save'),
-						'click': ui.createHandlerFn(this, 'setEnabled', !enabled)
-					}, enabled ? _('停用拦截') : _('启用拦截')),
+					btnToggle,
 					' ',
 					E('button', {
 						'class': 'btn cbi-button cbi-button-action',

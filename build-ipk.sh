@@ -4,7 +4,7 @@
 set -e
 
 PKG=luci-app-webrtc-control
-VER=1.0.1
+VER=1.0.2
 REL=1
 
 HERE=$(cd "$(dirname "$0")" && pwd)
