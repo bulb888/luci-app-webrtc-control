@@ -1,0 +1,24 @@
+# 已知 STUN/TURN 服务器域名清单
+# apply.sh 会把每个域名生成 dnsmasq 的 nftset= 规则，
+# 解析出的 IP 自动进入 nftables 集合 stun_block_ip4/6 并被丢弃。
+# 一行一个域名，# 开头为注释。
+
+# Google
+stun.l.google.com
+stun1.l.google.com
+stun2.l.google.com
+stun3.l.google.com
+stun4.l.google.com
+
+# 常见公共 STUN
+stun.stunprotocol.org
+stun.voip.blackberry.com
+stun.voipbuster.com
+stun.voipstunt.com
+stun.services.mozilla.com
+stun.cloudflare.com
+global.stun.twilio.com
+
+# 通配（覆盖大量 stun.* 子域）
+# 注意：通配符匹配较激进，可能影响个别正常服务，按需启用。
+#stun.*

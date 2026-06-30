@@ -1,0 +1,23 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+STOP=10
+USE_PROCD=1
+
+APPLY=/usr/share/webrtc-control/apply.sh
+
+start_service() {
+	"$APPLY" apply
+}
+
+stop_service() {
+	"$APPLY" clear
+}
+
+reload_service() {
+	"$APPLY" apply
+}
+
+service_triggers() {
+	procd_add_reload_trigger "webrtc-control"
+}

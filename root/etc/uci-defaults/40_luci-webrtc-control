@@ -1,0 +1,5 @@
+#!/bin/sh
+/etc/init.d/webrtc-control enable
+/etc/init.d/webrtc-control start
+rm -f /tmp/luci-indexcache
+exit 0

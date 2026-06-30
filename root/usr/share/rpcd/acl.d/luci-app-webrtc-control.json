@@ -1,0 +1,22 @@
+{
+	"luci-app-webrtc-control": {
+		"description": "Grant access to WebRTC Control",
+		"read": {
+			"uci": [ "webrtc-control", "firewall", "dhcp" ],
+			"ubus": {
+				"webrtc-control": [ "status", "stats", "logs" ],
+				"network.interface": [ "dump" ]
+			},
+			"file": {
+				"/etc/init.d/webrtc-control": [ "exec" ]
+			}
+		},
+		"write": {
+			"uci": [ "webrtc-control" ],
+			"file": {
+				"/etc/init.d/webrtc-control reload": [ "exec" ],
+				"/etc/init.d/webrtc-control restart": [ "exec" ]
+			}
+		}
+	}
+}

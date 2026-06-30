@@ -1,0 +1,13 @@
+
+config webrtc-control 'global'
+	option enabled '0'
+	option mode 'proxy'
+	option dpi '1'
+	option ports '1'
+	option dns '1'
+	option log '1'
+	option all_zones '1'
+
+config whitelist 'whitelist'
+
+config scope 'scope'

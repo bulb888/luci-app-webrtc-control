@@ -1,0 +1,44 @@
+{
+	"admin/services/webrtc-control": {
+		"title": "WebRTC 控制",
+		"order": 60,
+		"action": {
+			"type": "firstchild"
+		},
+		"depends": {
+			"acl": [ "luci-app-webrtc-control" ]
+		}
+	},
+	"admin/services/webrtc-control/overview": {
+		"title": "总览",
+		"order": 10,
+		"action": {
+			"type": "view",
+			"path": "webrtc-control/overview"
+		}
+	},
+	"admin/services/webrtc-control/settings": {
+		"title": "拦截设置",
+		"order": 20,
+		"action": {
+			"type": "view",
+			"path": "webrtc-control/settings"
+		}
+	},
+	"admin/services/webrtc-control/whitelist": {
+		"title": "白名单与范围",
+		"order": 30,
+		"action": {
+			"type": "view",
+			"path": "webrtc-control/whitelist"
+		}
+	},
+	"admin/services/webrtc-control/logs": {
+		"title": "拦截日志",
+		"order": 40,
+		"action": {
+			"type": "view",
+			"path": "webrtc-control/logs"
+		}
+	}
+}

@@ -1,0 +1,59 @@
+#!/bin/sh
+# ubus/rpcd 后端：为 LuCI 界面提供运行状态、拦截计数、日志。
+
+. /usr/share/libubox/jshn.sh
+
+NFT_TABLE="inet webrtc_control"
+
+# 统计某 comment 规则累计丢包数
+count_by_comment() {
+	nft list chain $NFT_TABLE forward 2>/dev/null \
+		| grep "comment \"$1\"" \
+		| grep -oE 'packets [0-9]+' \
+		| awk '{s+=$2} END{print s+0}'
+}
+
+case "$1" in
+	list)
+		echo '{ "status": {}, "stats": {}, "logs": {} }'
+		;;
+	call)
+		case "$2" in
+			status)
+				loaded=0
+				nft list table $NFT_TABLE >/dev/null 2>&1 && loaded=1
+				enabled=$(uci -q get webrtc-control.global.enabled); [ -n "$enabled" ] || enabled=0
+				mode=$(uci -q get webrtc-control.global.mode); [ -n "$mode" ] || mode=proxy
+				total=$(nft list table $NFT_TABLE 2>/dev/null \
+					| grep -oE 'packets [0-9]+' | awk '{s+=$2} END{print s+0}')
+				wl=$(( $(uci -q get webrtc-control.whitelist.ip | wc -w) + $(uci -q get webrtc-control.whitelist.mac | wc -w) ))
+				json_init
+				json_add_int loaded "$loaded"
+				json_add_int enabled "$enabled"
+				json_add_string mode "$mode"
+				json_add_int dropped "${total:-0}"
+				json_add_int whitelisted "${wl:-0}"
+				json_dump
+				;;
+			stats)
+				json_init
+				json_add_int dpi   "$(count_by_comment stun-dpi)"
+				json_add_int ports "$(count_by_comment stun-port)"
+				json_add_int dns   "$(count_by_comment stun-dns)"
+				json_dump
+				;;
+			logs)
+				json_init
+				json_add_array entries
+				logread 2>/dev/null | grep 'webrtc-drop' | tail -n 200 | while read -r line; do
+					json_add_string "" "$line"
+				done
+				json_close_array
+				json_dump
+				;;
+			*)
+				echo '{}'
+				;;
+		esac
+		;;
+esac
