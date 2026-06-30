@@ -4,8 +4,8 @@
 'require dom';
 'require poll';
 
-var callLogs  = rpc.declare({ object: 'webrtc-control', method: 'logs' });
-var callStats = rpc.declare({ object: 'webrtc-control', method: 'stats' });
+var callLogs  = rpc.declare({ object: 'webrtc-control', method: 'logs',  expect: { '': {} } });
+var callStats = rpc.declare({ object: 'webrtc-control', method: 'stats', expect: { '': {} } });
 
 function statRow(label, node) {
 	return E('tr', { 'class': 'tr' }, [

@@ -29,7 +29,7 @@ return view.extend({
 		o.default = '1';
 
 		o = s.option(form.Flag, 'dns', _('DNS 域名拦截'),
-			_('屏蔽已知 STUN 服务器域名（依赖 dnsmasq-full 的 nftset 支持）。'));
+			_('解析已知 STUN 服务器域名清单并屏蔽其 IP（自包含解析器，每 30 分钟自动刷新，不依赖 dnsmasq）。'));
 		o.default = '1';
 
 		o = s.option(form.Flag, 'log', _('记录拦截日志'),

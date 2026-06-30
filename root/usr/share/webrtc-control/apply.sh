@@ -23,6 +23,19 @@ CRON_MARK="/usr/share/webrtc-control/resolve-stun.sh"
 logmsg() { logger -t webrtc-control "$*"; }
 ucg()    { uci -q get "webrtc-control.$1"; }
 
+# 输入校验：白名单值会写进 nft 文件，必须校验，既挡注入也防非法值让整表加载失败。
+# 先用 case 白名单字符集挡掉空格/大括号/分号等注入字符，再用正则校验格式。
+valid_ipmask() { # IPv4/IPv6，可带 CIDR
+	case "$1" in *[!0-9a-fA-F:./]*) return 1 ;; esac
+	echo "$1" | grep -qE '^([0-9]{1,3}\.){3}[0-9]{1,3}(/[0-9]{1,2})?$' && return 0
+	case "$1" in *:*) echo "$1" | grep -qE '^[0-9a-fA-F:]+(/[0-9]{1,3})?$' && return 0 ;; esac
+	return 1
+}
+valid_mac() {
+	case "$1" in *[!0-9a-fA-F:]*) return 1 ;; esac
+	echo "$1" | grep -qE '^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$'
+}
+
 # 取 WAN 出接口（IPv4 + IPv6 的 L3 设备）
 get_wan_ifaces() {
 	local n d out=""
@@ -107,15 +120,19 @@ apply_all() {
 	logopt=$(ucg global.log);        [ -n "$logopt" ]    || logopt=1
 	all_zones=$(ucg global.all_zones); [ -n "$all_zones" ] || all_zones=1
 
-	# 白名单：按是否含冒号分流 v4 / v6
-	local wl_ip4="" wl_ip6="" wl_mac item
+	# 白名单：校验后按是否含冒号分流 v4 / v6（非法值跳过并记日志）
+	local wl_ip4="" wl_ip6="" wl_mac="" item
 	for item in $(ucg whitelist.ip); do
+		valid_ipmask "$item" || { logmsg "跳过非法白名单 IP: $item"; continue; }
 		case "$item" in
 			*:*) wl_ip6="$wl_ip6 $item" ;;
 			*)   wl_ip4="$wl_ip4 $item" ;;
 		esac
 	done
-	wl_mac=$(ucg whitelist.mac)
+	for item in $(ucg whitelist.mac); do
+		valid_mac "$item" || { logmsg "跳过非法白名单 MAC: $item"; continue; }
+		wl_mac="$wl_mac $item"
+	done
 
 	# WAN 出接口
 	local wanif; wanif=$(get_wan_ifaces)

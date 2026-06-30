@@ -14,7 +14,7 @@ LUCI_DEPENDS:=+firewall4 +kmod-nft-core +resolveip
 LUCI_PKGARCH:=all
 
 PKG_NAME:=luci-app-webrtc-control
-PKG_VERSION:=1.0.0
+PKG_VERSION:=1.0.1
 PKG_RELEASE:=1
 PKG_MAINTAINER:=hongzhebin <hongzhebin079@gmail.com>
 PKG_LICENSE:=GPL-3.0-or-later

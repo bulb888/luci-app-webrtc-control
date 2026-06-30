@@ -6,8 +6,8 @@
 'require dom';
 'require poll';
 
-var callStatus = rpc.declare({ object: 'webrtc-control', method: 'status' });
-var callStats  = rpc.declare({ object: 'webrtc-control', method: 'stats' });
+var callStatus = rpc.declare({ object: 'webrtc-control', method: 'status', expect: { '': {} } });
+var callStats  = rpc.declare({ object: 'webrtc-control', method: 'stats',  expect: { '': {} } });
 
 function badge(ok, ontext, offtext) {
 	return E('span', { 'style': 'font-weight:bold;color:' + (ok ? '#2e7d32' : '#c62828') },

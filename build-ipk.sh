@@ -1,10 +1,10 @@
 #!/bin/sh
 # 手工组装 luci-app-webrtc-control 的 .ipk（纯文件包，无需 SDK / Docker）。
-# 用 macOS 自带 bsdtar + ar 即可，产物在 ./dist/。
+# 外层 gzip-tar + 内层 ustar（opkg busybox 解析器要求），用 macOS 自带 bsdtar 即可，产物在 ./dist/。
 set -e
 
 PKG=luci-app-webrtc-control
-VER=1.0.0
+VER=1.0.1
 REL=1
 
 HERE=$(cd "$(dirname "$0")" && pwd)

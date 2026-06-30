@@ -24,18 +24,19 @@ return view.extend({
 
 		o = s.option(form.DynamicList, 'ip', _('IP 地址'),
 			_('支持单个地址或网段（CIDR）。'));
-		o.datatype = 'ipaddr';
+		o.datatype = 'or(ipaddr,cidr4,cidr6)';
 		Object.keys(hints).forEach(function(mac) {
-			var h = hints[mac];
-			if (h && h.ipv4)
-				o.value(h.ipv4, h.ipv4 + (h.name ? ' (' + h.name + ')' : ''));
+			var h = hints[mac] || {};
+			var ip = h.ipv4 || (h.ipaddrs && h.ipaddrs[0]);
+			if (ip)
+				o.value(ip, ip + (h.name ? ' (' + h.name + ')' : ''));
 		});
 
 		o = s.option(form.DynamicList, 'mac', _('MAC 地址'));
 		o.datatype = 'macaddr';
 		Object.keys(hints).forEach(function(mac) {
-			var h = hints[mac];
-			o.value(mac, mac + (h && h.name ? ' (' + h.name + ')' : ''));
+			var h = hints[mac] || {};
+			o.value(mac, mac + (h.name ? ' (' + h.name + ')' : ''));
 		});
 
 		s = m.section(form.NamedSection, 'scope', 'scope', _('生效范围'),

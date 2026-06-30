@@ -45,9 +45,15 @@ case "$1" in
 			logs)
 				json_init
 				json_add_array entries
-				logread 2>/dev/null | grep 'webrtc-drop' | tail -n 200 | while read -r line; do
+				# 注意：不能用 `cmd | while read` —— 管道右侧在子shell执行，
+				# jshn 的 json_add_string 改的是子shell变量，回到父shell数组是空的。
+				# 改用 IFS=换行 的 for 循环，在当前shell累积。
+				_oifs="$IFS"; IFS='
+'
+				for line in $(logread 2>/dev/null | grep 'webrtc-drop' | tail -n 200); do
 					json_add_string "" "$line"
 				done
+				IFS="$_oifs"
 				json_close_array
 				json_dump
 				;;
